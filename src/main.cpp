@@ -22,11 +22,11 @@ char nrEl=3;                                //Number of electrodes. 2 or 3
 volatile uint_fast16_t timerBaseStep = 25;  //This is timer base step in ms (for interupts). Tested frequencies value --> Measured: 15 --> 67.5Hz, 10 --> 100Hz, 25 -->40.42Hz
 volatile uint_fast16_t timerBaseStep1 = 25; //This is timer base step 1 (odd): this value is used for all measurements but DPV, in which case both timerBaseStep1 and 2 are used.
 volatile uint_fast16_t timerBaseStep2 = 0;  //This is timer base step 2 (even): which is used only for DPV. In all other cases it should be 0 and only value "1" is used. Default
-int refIncOdd=0;    //Reference channel increment at odd steps
-int refIncEven=0;   //Reference channel increase at even steps
-int wIncOdd=0;      //Working channel increase at odd steps
-int wIncEven=0;     //Working channel increase at even steps
-int numberOfSteps=0;   //Number of steps to make
+int refIncOdd=20;    //Reference channel increment at odd steps
+int refIncEven=10;   //Reference channel increase at even steps
+int wIncOdd=20;      //Working channel increase at odd steps
+int wIncEven=1;     //Working channel increase at even steps
+int numberOfSteps=500;   //Number of steps to make
 
 //--- System variables ---
 volatile bool sRunning=false;   //Currently in running state
@@ -70,7 +70,7 @@ void setDAC(byte channel, unsigned int value)
 {
   byte lowB=value&0xFF;
   byte highB=(value>>8)&0xFF;
-  byte chB=0x18+channel;
+  byte chB=0x19-channel;
   sendToDAC(chB,highB,lowB); 
 }
 
@@ -154,7 +154,7 @@ void sendData()
     Serial.print(' ');
     Serial.print(outInp_even);
     Serial.print(' ');
-    Serial.print(outT);
+    Serial.print(outT); 
     Serial.print(' ');
     Serial.print(last_wPot);
     Serial.print(' ');
