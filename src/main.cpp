@@ -6,8 +6,11 @@
 #define SwitchDACIV 3                              
 #define ADCIn A3
 
-#define DAC_RefCH 0
-#define DAC_WCH 1
+// #define DAC_RefCH 0
+// #define DAC_WCH 1
+
+#define DAC_RefCH 1
+#define DAC_WCH 0
 
 //---------------------------------------------------------------
 // --- ALL VARIABLES AND SETTINGS
@@ -15,17 +18,17 @@
 String commandString;
 //--- System setting ---
 volatile bool isInterrupt = false;
-volatile unsigned int refPot=0;             //Reference electrode potential DAC value
-volatile unsigned int wPot=0;               //Working electrode potential DAC value
+volatile unsigned int refPot=22500;             //Reference electrode potential DAC value
+volatile unsigned int wPot=30500;               //Working electrode potential DAC value
 char inpMode=0;                             //Input mode 0-potentiometric, 1-amperometric
 char nrEl=3;                                //Number of electrodes. 2 or 3
 volatile uint_fast16_t timerBaseStep = 25;  //This is timer base step in ms (for interupts). Tested frequencies value --> Measured: 15 --> 67.5Hz, 10 --> 100Hz, 25 -->40.42Hz
 volatile uint_fast16_t timerBaseStep1 = 25; //This is timer base step 1 (odd): this value is used for all measurements but DPV, in which case both timerBaseStep1 and 2 are used.
 volatile uint_fast16_t timerBaseStep2 = 0;  //This is timer base step 2 (even): which is used only for DPV. In all other cases it should be 0 and only value "1" is used. Default
-int refIncOdd=20;    //Reference channel increment at odd steps
-int refIncEven=10;   //Reference channel increase at even steps
-int wIncOdd=20;      //Working channel increase at odd steps
-int wIncEven=1;     //Working channel increase at even steps
+int refIncOdd=0;    //Reference channel increment at odd steps
+int refIncEven=0;   //Reference channel increase at even steps
+int wIncOdd=0;      //Working channel increase at odd steps
+int wIncEven=0;     //Working channel increase at even steps
 int numberOfSteps=500;   //Number of steps to make
 
 //--- System variables ---
@@ -61,7 +64,7 @@ char outIndex='0';
 void sendToDAC(byte b1, byte b2, byte b3)
 {
   byte error;
-  Wire.beginTransmission(0x0F); //DAC address pin is connected to ground
+  Wire.beginTransmission(0x0C); //DAC address pin is connected to ground
   Wire.write(b1); Wire.write(b2); Wire.write(b3);
   error = Wire.endTransmission(); 
 }
@@ -70,7 +73,7 @@ void setDAC(byte channel, unsigned int value)
 {
   byte lowB=value&0xFF;
   byte highB=(value>>8)&0xFF;
-  byte chB=0x19-channel;
+  byte chB=0x18 + channel;
   sendToDAC(chB,highB,lowB); 
 }
 
@@ -146,19 +149,19 @@ void sendData()
     if(outIndex>'9'){ outIndex='0'; }
     Serial.print('M');
     Serial.print(' ');
-    Serial.print(outRefPot_odd);
-    Serial.print(' ');
+    // Serial.print(outRefPot_odd);
+    // Serial.print(' ');
     Serial.print(outInp_odd);
     Serial.print(' ');
-    Serial.print(outRefPot_even);
-    Serial.print(' ');
+    // Serial.print(outRefPot_even);
+    // Serial.print(' ');
     Serial.print(outInp_even);
     Serial.print(' ');
-    Serial.print(outT); 
-    Serial.print(' ');
-    Serial.print(last_wPot);
-    Serial.print(' ');
-    Serial.print(outN); 
+    // Serial.print(outT); 
+    // Serial.print(' ');
+    // Serial.print(last_wPot);
+    // Serial.print(' ');
+    // Serial.print(outN); 
     Serial.println("");
 }
 
@@ -298,6 +301,7 @@ void setup()
   timerInit();  
   analogReadResolution(10);  
   pinMode(ADCIn,INPUT); //Input signaL
+  Serial.println("setup:DONE");
 
 }
 
@@ -378,9 +382,9 @@ void loop()
               }
           }
         ADCsum=0;
-      }
-    }else{
-      for(char i=0; i<128; i++) ADCsum=ADCsum+analogRead(ADCIn); 
+      }else{
+        for(char i=0; i<128; i++) ADCsum=ADCsum+analogRead(ADCIn); 
+    }
     }
 
 
@@ -402,49 +406,6 @@ void loop()
 } 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-// #include <Arduino.h>
-
-// volatile bool flag = false;
-
-
-// extern "C"
-// {
-//    void TIMER4_IRQHandler_v()
-//   {
-//     if (NRF_TIMER4->EVENTS_COMPARE[0] == 1)
-//     {   
-//         flag = !flag;
-        
-//         NRF_TIMER4->EVENTS_COMPARE[0] = 0;
-//     }
-//   }
-// }
-
-// void setup() {
-//     Serial.begin(115200);
-//     Serial.println("Configuring timer");
- 
-//     NRF_TIMER4->BITMODE = TIMER_BITMODE_BITMODE_16Bit << TIMER_BITMODE_BITMODE_Pos;
-//     NRF_TIMER4->PRESCALER = 4 << TIMER_PRESCALER_PRESCALER_Pos;
-//     NRF_TIMER4->CC[0] = 10000;
-//     NRF_TIMER4->INTENSET = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos;
-//     NRF_TIMER4->SHORTS = TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos;
-
-//     NVIC_EnableIRQ(TIMER4_IRQn);
-//     NRF_TIMER4->TASKS_START = 1;
-// }
-
-// void loop() {
-//     if (flag)
-//     {
-//       int test;
-//       test = analogRead(A3);
-//       Serial.println(test);
-//     }
-// }
 
 
