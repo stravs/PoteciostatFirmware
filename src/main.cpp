@@ -18,18 +18,18 @@
 String commandString;
 //--- System setting ---
 volatile bool isInterrupt = false;
-volatile unsigned int refPot=22500;             //Reference electrode potential DAC value
-volatile unsigned int wPot=30500;               //Working electrode potential DAC value
+volatile unsigned int refPot=6581;             //Reference electrode potential DAC value naš
+volatile unsigned int wPot=21081;               //Working electrode potential DAC value
 char inpMode=0;                             //Input mode 0-potentiometric, 1-amperometric
 char nrEl=3;                                //Number of electrodes. 2 or 3
 volatile uint_fast16_t timerBaseStep = 25;  //This is timer base step in ms (for interupts). Tested frequencies value --> Measured: 15 --> 67.5Hz, 10 --> 100Hz, 25 -->40.42Hz
 volatile uint_fast16_t timerBaseStep1 = 25; //This is timer base step 1 (odd): this value is used for all measurements but DPV, in which case both timerBaseStep1 and 2 are used.
 volatile uint_fast16_t timerBaseStep2 = 0;  //This is timer base step 2 (even): which is used only for DPV. In all other cases it should be 0 and only value "1" is used. Default
-int refIncOdd=0;    //Reference channel increment at odd steps
+int refIncOdd=29;    //Reference channel increment at odd steps
 int refIncEven=0;   //Reference channel increase at even steps
 int wIncOdd=0;      //Working channel increase at odd steps
 int wIncEven=0;     //Working channel increase at even steps
-int numberOfSteps=500;   //Number of steps to make
+int numberOfSteps=2000;   //Number of steps to make
 
 //--- System variables ---
 volatile bool sRunning=false;   //Currently in running state
@@ -333,7 +333,15 @@ void loop()
           if(sRunning)
           {
               N=N+1; //Increase step number
-              if(N>numberOfSteps){ sRunning=false; cycleDone=true; } //Check if desigerd number of steps are done
+              if(N>numberOfSteps)
+              { 
+                sRunning=false; cycleDone=true;                               
+              } //Check if desigerd number of steps are done
+              if(N == numberOfSteps/2 + 1)
+              {
+                refIncEven = refIncEven * (-1);
+                refIncOdd = refIncOdd * (-1);
+              }
           }
           //If running the update
           if(sRunning)
@@ -400,7 +408,7 @@ void loop()
    } 
    if(sRunning&&outSend) //New data gathered send it away
    {
-      sendData();       
+      // sendData();       
       outSend=false;  
    }
 } 
